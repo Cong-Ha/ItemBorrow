@@ -17,8 +17,8 @@
             <thead>
                 <tr>
                     <th>Borrow Id</th>
-                    <th>User Id</th>
-                    <th>Item Id</th>
+                    <th>User Name</th>
+                    <th>Item Name</th>
                     <th>Borrow Date</th>
                     <th>Due Date</th>
                     <th>Usage Location</th>
@@ -31,7 +31,18 @@
                 include("config/dbConfig.php");
 
                 //select data
-                $query = "SELECT borrow_id, user_id, item_id, borrow_date, due_date, usage_location, status FROM borrowings";
+                $query = 
+                    "SELECT 
+                    borrow_id, 
+                    u.full_name, 
+                    i.item_name, 
+                    borrow_date, 
+                    due_date, 
+                    usage_location, 
+                    status 
+                    FROM borrowings b
+                    JOIN users u ON b.user_id = u.user_id
+                    JOIN items i ON b.item_id = i.item_id";
 
                 //prepare query statement
                 $stmt = $conn->prepare($query);
@@ -47,8 +58,8 @@
 
                         echo"<tr>";
                             echo"<td>{$borrow_id}</td>";
-                            echo"<td>{$user_id}</td>";
-                            echo"<td>{$item_id}</td>";
+                            echo"<td>{$full_name}</td>";
+                            echo"<td>{$item_name}</td>";
                             echo"<td>{$borrow_date}</td>";
                             echo"<td>{$due_date}</td>";
                             echo"<td>{$usage_location}</td>";

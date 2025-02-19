@@ -21,9 +21,11 @@ function validateInput($data, $patterns) {
 }
 
 $patterns = [
-    "FullName" => "/^[a-zA-Z\s'-]{1,100}$/", //(A-Z,a-z, -, ')
-    "Email" => "/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", //matches before @, matches for @, matches domain, matches .com, .org, etc.
-    "Phone" => "/^[\d\s\(\)\+\-]{1,20}$/", //allows digits, spaces, parantheses, plus signs and hyphens
+    "FullName" => "/^[A-Za-z\s]+$/",
+    "Email" => "/^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/",
+    "Phone" => "/^[\d\s\(\)\+\-]{1,20}$/",
+    "BorrowDate" => "/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/", //YYYY-MM-DD HH:MM:SS format
+    "ItemId" => "/^\d+$/", //numeric value only
 ];
 
 //database sequence
@@ -36,7 +38,7 @@ if($_SERVER["REQUEST_METHOD"]=="POST") {
     $role = sanitizeInput($_POST['role'] ?? '');
     $item_id = $_POST['item_id'];
     $borrow_date = date('Y-m-d H:i:s'); //current timestamp
-    $due_date = date('Y-m-d H:i:s', strtotime('+7 days'));
+    $due_date = date('Y-m-d H:i:s', strtotime('+7 days')); //due in 7 days
     $usage_location = sanitizeInput($_POST['usage_location'] ?? '');
 
     $allowedRoles = ["Student", "Teacher", "Librarian", "Admin"];
@@ -59,6 +61,12 @@ if($_SERVER["REQUEST_METHOD"]=="POST") {
         $errors['phone'] = "Invalid Full Name (only only digits, spaces, parantheses, plus signs or hyphens, max 20 characters).";
                 
     }
+    if(!validateInput($item_id, $patterns['ItemId'])) {
+        $errors['item_id'] = 'Invalid Item Id must be a numerical value!';
+    }
+    if(!validateInput($borrow_date, $patterns['BorrowDate'])) {
+        $errors['borrow_date'] = 'Invalid date must be in YYYY-MM-DD HH:MM:SS format!';
+    }
     if(empty($role)) {
         $errors['role'] = "Role is required.";
     } elseif (!in_array($role, $allowedRoles)){
@@ -69,12 +77,6 @@ if($_SERVER["REQUEST_METHOD"]=="POST") {
     } elseif (!in_array($usage_location, $allowedLocations)) {
         $errors['usage_location'] = "Invalid usage location selected.";
     }
-    if (empty($item_id)) {
-        $errors['item_id'] = "Please select a available item.";
-    } elseif (!in_array($item_id, $itemIds)) {
-        $errors['item_id'] = "Invalid Item selected.";
-    }
-
 
     if(empty($errors)) {
         try {
